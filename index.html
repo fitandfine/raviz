@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raviz Indian Restaurant - Menu</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: url('images/bg.webp') no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        h1 {
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #ff6347;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 3em;
+            text-shadow: 3px 3px 7px black;
+        }
+
+        #location-select {
+            display: block;
+            margin: 0 auto 30px auto;
+            padding: 12px;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        #menu-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .menu-section {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+            transition: transform 0.3s;
+        }
+
+        .menu-section:hover {
+            transform: scale(1.05);
+        }
+
+        h2 {
+            text-align: center;
+            color: #ff6347;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #ff6347;
+            padding-bottom: 10px;
+        }
+
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .menu-item span {
+            font-weight: 600;
+            color: #ffd700;
+        }
+
+        .speaker-icon {
+            cursor: pointer;
+            color: #ffd700;
+            font-size: 20px;
+            margin-left: 15px;
+        }
+
+        footer {
+            text-align: center;
+            background-color: #222;
+            color: #ff6347;
+            padding: 15px 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 3px solid #ff6347;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+        }
+
+        .footer-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .footer-button:hover {
+            background-color: #367c39;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2.2em;
+            }
+
+            h2 {
+                font-size: 1.6em;
+            }
+
+            .footer-button {
+                padding: 10px 18px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Raviz Indian Restaurant</h1>
+
+    <select id="location-select" onchange="loadMenu()">
+        <option value="menu1.csv">Sky Tower</option>
+        <option value="menu2.csv">Northshore</option>
+        <option value="menu3.csv">New Lynn</option>
+    </select>
+
+    <div id="menu-container"></div>
+
+    <footer>
+        <button class="footer-button" onclick="sharePage()">Share This Page</button>
+        <button class="footer-button" onclick="showModal()">About Developer</button>
+        <button class="footer-button" onclick="window.location='images/page.png'">Share This QR</button>
+    </footer>
+
+    <script>
+        function loadMenu() {
+            const select = document.getElementById('location-select');
+            const menuFile = select.value;
+            fetch('images/' + menuFile)
+                .then(response => response.text())
+                .then(data => {
+                    const rows = data.split('\n').slice(1); // Skip header row
+                    const menuContainer = document.getElementById('menu-container');
+                    menuContainer.innerHTML = ''; // Clear previous menu
+
+                    let categories = {};
+                    rows.forEach(row => {
+                        const [category, item, description, price] = row.split(',');
+
+                        // Group items by category
+                        if (!categories[category]) {
+                            categories[category] = [];
+                        }
+                        categories[category].push({ item, description, price });
+                    });
+
+                    // Create tiles for each category
+                    for (const category in categories) {
+                        const sectionDiv = document.createElement('div');
+                        sectionDiv.classList.add('menu-section');
+                        sectionDiv.innerHTML = `<h2>${category}</h2>`;
+
+                        categories[category].forEach(menuItem => {
+                            const itemHTML = `<div class="menu-item">
+                                ${menuItem.item}: <span>${menuItem.description}</span> - $${menuItem.price}
+                                <span class="speaker-icon" onclick="speak('${menuItem.item}, ${menuItem.description}, priced at $${menuItem.price}')">&#x1f50a;</span>
+                            </div>`;
+                            sectionDiv.innerHTML += itemHTML;
+                        });
+
+                        menuContainer.appendChild(sectionDiv);
+                    }
+                })
+                .catch(error => console.error('Error loading the menu:', error));
+        }
+
+        function speak(message) {
+            const utterance = new SpeechSynthesisUtterance(message);
+            utterance.onend = function () {
+                console.log('Speech finished.');
+            };
+            utterance.onerror = function (event) {
+                console.error('Speech synthesis failed:', event);
+            };
+            speechSynthesis.speak(utterance);
+        }
+
+        function showModal() {
+            alert('Developed by Anup Chapain - Visit Instagram @anupcp');
+        }
+
+        function sharePage() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Raviz Menu',
+                    url: window.location.href
+                }).then(() => console.log('Content shared successfully'))
+                .catch(error => console.error('Error sharing:', error));
+            } else {
+                console.log('Web share not supported on this browser.');
+            }
+        }
+
+        // Load the default menu on page load
+        window.onload = loadMenu;
+    </script>
+</body>
+
+</html>
